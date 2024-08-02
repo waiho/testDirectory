@@ -1,3 +1,4 @@
+// comment
 jQuery(document).ready(function ($) {
   // Variable to store the current page of the speaker list
   var currentPage = 1;
