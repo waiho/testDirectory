@@ -4,13 +4,9 @@ on:
   push:
     paths:
       - 'sermon-filter-plugin/**'
-      - 'sermon-filter-plugin/css/**'
-      - 'sermon-filter-plugin/js/**'
   pull_request:
     paths:
       - 'sermon-filter-plugin/**'
-      - 'sermon-filter-plugin/css/**'
-      - 'sermon-filter-plugin/js/**'
 
 jobs:
   build:
@@ -23,19 +19,18 @@ jobs:
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '7.4'  # or your preferred PHP version
+        php-version: '7.4' # Specify the PHP version you want to use
 
-    - name: Run PHP lint
+    - name: Install dependencies
+      run: composer install
+
+    - name: Zip Plugin Files
       run: |
-        find . -name "*.php" -print0 | xargs -0 -n1 php -l
+        cd sermon-filter-plugin
+        zip -r ../sermon-filter-plugin.zip . -x '*.git*' -x 'node_modules/**' -x 'vendor/**'
 
-    - name: Build plugin ZIP
-        run: |
-          cd sermon-filter-plugin
-          zip -r ../sermon-filter-plugin.zip . -x ".github/*"
-
-   - name: Upload artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: sermon-filter-plugin
-          path: sermon-filter-plugin.zip
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: sermon-filter-plugin
+        path: sermon-filter-plugin.zip
