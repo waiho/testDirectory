@@ -26,13 +26,13 @@ jobs:
           sed -i "s/define('SFB_VERSION', '$CURRENT_VERSION')/define('SFB_VERSION', '$NEW_VERSION')/" "$PLUGIN_FILE"
           echo "new_version=$NEW_VERSION" >> $GITHUB_ENV
 
-      # - name: Commit version bump
-      #   run: |
-      #     git config user.name "GitHub Actions"
-      #     git config user.email "actions@github.com"
-      #     git add sermon-filter-plugin/sermon-filter-plugin.php
-      #     git commit -m "Bump version to ${{ env.new_version }}"
-      #     git push
+      - name: Commit version bump
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add sermon-filter-plugin/sermon-filter-plugin.php
+          git commit -m "Bump version to ${{ env.new_version }}"
+          git push
 
       # - name: Build plugin ZIP
       #   run: |
