@@ -39,7 +39,11 @@ jobs:
           git commit -m "Bump version to ${{ env.new_version }}"
           git push
 
-
+      - name: Build plugin ZIP
+        run: |
+          mkdir build
+          zip -r build/sermon-filter-plugin.zip sermon-filter-plugin
+          
   create_release:
     needs: bump_version
     runs-on: ubuntu-latest
