@@ -17,7 +17,7 @@ jobs:
           CURRENT_VERSION=$(grep -oP "(?<=define\('SFB_VERSION', ')\d+\.\d+\.\d+" "$PLUGIN_FILE")
           echo "current_version=$CURRENT_VERSION" >> $GITHUB_ENV
 
-      - name: Bump version number
+      - name: Bump version numberaaa
         run: |
           PLUGIN_FILE="sermon-filter-plugin/sermon-filter-plugin.php"
           CURRENT_VERSION="${{ env.current_version }}"
@@ -39,16 +39,16 @@ jobs:
           mkdir build
           zip -r build/sermon-filter-plugin.zip sermon-filter-plugin
 
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1.1.4
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: "v${{ env.new_version }}"
-          release_name: "v${{ env.new_version }}"
-          draft: false
-          prerelease: false
+      # - name: Create GitHub Release
+      #   id: create_release
+      #   uses: actions/create-release@v1.1.4
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     tag_name: "v${{ env.new_version }}"
+      #     release_name: "v${{ env.new_version }}"
+      #     draft: false
+      #     prerelease: false
 
       # - name: Upload ZIP to Release
       #   uses: actions/upload-release-asset@v1.0.2
