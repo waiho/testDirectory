@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Define the file to update and the regex pattern to search for
+# Define the file to update
 FILE="sermon-filter-plugin/sermon-filter-plugin.php"
-VERSION_REGEX="^Version:\s*(.*)$"
+VERSION_REGEX="^define\('SFB_VERSION', '(.*)'\);$"
 
 # Extract the current version number
-CURRENT_VERSION=$(grep -i "Version:" $FILE | awk '{print $2}')
+CURRENT_VERSION=$(grep -oP "$VERSION_REGEX" $FILE | grep -oP "[0-9]+\.[0-9]+\.[0-9]+")
 echo "Current version: $CURRENT_VERSION"
 
 # Split version into parts
@@ -20,7 +20,8 @@ NEW_VERSION="$MAJOR.$MINOR.$PATCH"
 echo "New version: $NEW_VERSION"
 
 # Replace the old version number with the new one in the file
-sed -i '' -e "s/Version: $CURRENT_VERSION/Version: $NEW_VERSION/" $FILE
+sed -i '' -e "s/define('SFB_VERSION', '$CURRENT_VERSION');/define('SFB_VERSION', '$NEW_VERSION');/" $FILE
 
 # Output the new version for the GitHub Actions step
 echo "new_version=$NEW_VERSION" >> $GITHUB_ENV
+
