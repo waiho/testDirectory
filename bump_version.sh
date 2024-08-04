@@ -18,3 +18,6 @@ sed -i "s/Version: $CURRENT_VERSION/Version: $NEW_VERSION/" "$PLUGIN_FILE"
 
 # Output the new version number
 echo "Version bumped to $NEW_VERSION"
+
+# Output the new version for the GitHub Actions step
+echo "new_version=$NEW_VERSION" >> $GITHUB_ENV
