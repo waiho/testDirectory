@@ -9,7 +9,7 @@ Domain Path: /languages
 */
 // Exit if accessed directly
 if ( !defined( 'ABSPATH' ) ) exit;
-define('SFB_VERSION', '1.0.11');
+define('SFB_VERSION', '1.0.12');
 
 // Define the default number of posts per page
 define('DEFAULT_NUM_POSTS_PER_PAGE', 6);
