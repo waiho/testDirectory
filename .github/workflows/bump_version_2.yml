@@ -17,14 +17,14 @@ jobs:
           CURRENT_VERSION=$(grep -oP "(?<=define\('SFB_VERSION', ')\d+\.\d+\.\d+" "$PLUGIN_FILE")
           echo "current_version=$CURRENT_VERSION" >> $GITHUB_ENV
 
-      # - name: Bump version number
-      #   run: |
-      #     PLUGIN_FILE="sermon-filter-plugin/sermon-filter-plugin.php"
-      #     CURRENT_VERSION="${{ env.current_version }}"
-      #     IFS='.' read -r -a PARTS <<< "$CURRENT_VERSION"
-      #     NEW_VERSION="${PARTS[0]}.${PARTS[1]}.$((PARTS[2]+1))"
-      #     sed -i "s/define('SFB_VERSION', '$CURRENT_VERSION')/define('SFB_VERSION', '$NEW_VERSION')/" "$PLUGIN_FILE"
-      #     echo "new_version=$NEW_VERSION" >> $GITHUB_ENV
+      - name: Bump version number
+        run: |
+          PLUGIN_FILE="sermon-filter-plugin/sermon-filter-plugin.php"
+          CURRENT_VERSION="${{ env.current_version }}"
+          IFS='.' read -r -a PARTS <<< "$CURRENT_VERSION"
+          NEW_VERSION="${PARTS[0]}.${PARTS[1]}.$((PARTS[2]+1))"
+          sed -i "s/define('SFB_VERSION', '$CURRENT_VERSION')/define('SFB_VERSION', '$NEW_VERSION')/" "$PLUGIN_FILE"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_ENV
 
       # - name: Commit version bump
       #   run: |
