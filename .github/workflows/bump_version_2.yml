@@ -40,7 +40,7 @@ jobs:
           mkdir build
           zip -r build/sermon-filter-plugin.zip sermon-filter-plugin
 
-  create-release:
+  create_release:
     needs: bump_version
     runs-on: ubuntu-latest
     steps:
