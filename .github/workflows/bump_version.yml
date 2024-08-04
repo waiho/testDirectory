@@ -22,7 +22,7 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add .
-          git commit -m "Bump version number"
+          git commit -m "Bump version number to ${{ env.new_version }}"
           git push
 
 
@@ -42,9 +42,9 @@ jobs:
       - name: Create Release
         uses: actions/create-release@v1
         with:
-          tag_name: "v${{ steps.bump-version.outputs.new_version }}"
-          release_name: "Release ${{ steps.bump-version.outputs.new_version }}"
-          body: "Release notes for version ${{ steps.bump-version.outputs.new_version }}"
+          tag_name: "v${{ env.new_version }}"
+          release_name: "Release ${{ env.new_version }}"
+          body: "Release notes for version ${{ env.new_version }}"
           draft: false
           prerelease: false
         env:
