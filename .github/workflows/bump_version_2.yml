@@ -6,6 +6,8 @@ on:
 jobs:
   bump_version:
     runs-on: ubuntu-latest
+    outputs:
+      new_version: ${{ steps.bump_version_step.outputs.new_version }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -37,10 +39,6 @@ jobs:
           git commit -m "Bump version to ${{ env.new_version }}"
           git push
 
-      - name: Build plugin ZIP
-        run: |
-          mkdir build
-          zip -r build/sermon-filter-plugin.zip sermon-filter-plugin
 
   create_release:
     needs: bump_version
@@ -49,17 +47,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Get new version from bump_version job
-        run: echo "new_version=${{ needs.bump_version.bump_version_step.outputs.new_version }}" >> $GITHUB_ENV
-          
       - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1.1.4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: "v${{ env.new_version }}"
-          release_name: "v${{ env.new_version }}"
+          tag_name: "v${{ needs.bump_version.outputs.new_version }}"
+          release_name: "v${{ needs.bump_version.outputs.new_version }}"
           draft: false
           prerelease: false
 
@@ -72,3 +67,4 @@ jobs:
           asset_path: build/sermon-filter-plugin.zip
           asset_name: sermon-filter-plugin.zip
           asset_content_type: application/zip
+
