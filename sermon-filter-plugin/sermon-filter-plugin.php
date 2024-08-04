@@ -2,14 +2,14 @@
 /*
 Plugin Name: Sermon Filter Plugin
 Description: Adds filter buttons for recent, speaker, and scripture on sermon post type.
-Version: 1.0.1
-Author: Your Name
+Version: 1.0
+Author: Wai Ho Chan
 Text Domain: sermon-filter-plugin
 Domain Path: /languages
 */
-
 // Exit if accessed directly
 if ( !defined( 'ABSPATH' ) ) exit;
+define('SFB_VERSION', '1.0.1');
 
 // Define the default number of posts per page
 define('DEFAULT_NUM_POSTS_PER_PAGE', 6);
@@ -25,11 +25,11 @@ add_action('init', 'sfb_load_textdomain');
 // Enqueue scripts and styles
 function sfb_enqueue_scripts() {
     wp_enqueue_script('jquery');
-    wp_enqueue_script('sfb-script', plugin_dir_url(__FILE__) . 'js/sfb-script.js', array('jquery'), null, true);
+    wp_enqueue_script('sfb-script', plugin_dir_url(__FILE__) . 'js/sfb-script.js', array('jquery'), SFB_VERSION, true);
     wp_localize_script('sfb-script', 'sfb_ajax', array(
         'ajax_url' => admin_url('admin-ajax.php')
     ));
-    wp_enqueue_style('sfb-style', plugin_dir_url(__FILE__) . 'css/sfb-style.css');
+    wp_enqueue_style('sfb-style', plugin_dir_url(__FILE__) . 'css/sfb-style.css', array(), SFB_VERSION);
 }
 add_action('wp_enqueue_scripts', 'sfb_enqueue_scripts');
 
@@ -37,7 +37,6 @@ add_action('wp_enqueue_scripts', 'sfb_enqueue_scripts');
 function sfb_generate_filter_buttons_shortcode($atts = []) {
   // normalize attribute keys, lowercase
 	$atts = array_change_key_case( (array) $atts, CASE_LOWER );
-  // global $sfb_taxonomies;
 
   // Shortcode attributes with default value for 'taxonomy'
   $atts = shortcode_atts(array(
@@ -69,20 +68,16 @@ function sfb_generate_filter_buttons_shortcode($atts = []) {
   }
   ob_start();
     ?>
-    <div class="sermon-filter-buttons-container">
-      <div class="sermon-filter-buttons">
-        <button class="sermon-filter-button active" data-filter="recent"><?php esc_html_e('Recent', 'sermon-filter-plugin'); ?></button>
-        <!-- <button class="sermon-filter-button active" data-filter="recent">Recent</button> -->
-          <!-- <button class="sermon-filter-button" data-filter="speaker">Speaker</button>
-          <button class="sermon-filter-button" data-filter="scripture">Scriptures</button> -->
-          <?php foreach ($taxonomy_display_names as $taxonomy => $display_name) : ?>
-              <button class="sermon-filter-button" data-filter="<?php echo esc_attr($taxonomy); ?>"><?php echo esc_html($display_name); ?></button>
-          <?php endforeach; ?>
+    <div class="sfb-actions-container">
+      <div class="sfb-buttons-group">
+        <button class="sfb-filter-button active" data-filter="recent"><?php esc_html_e('Recent', 'sermon-filter-plugin'); ?></button>
+        <?php foreach ($taxonomy_display_names as $taxonomy => $display_name) : ?>
+            <button class="sfb-filter-button" data-filter="<?php echo esc_attr($taxonomy); ?>"><?php echo esc_html($display_name); ?></button>
+        <?php endforeach; ?>
       </div>
-      <div class="sermon-search-bar">
-          <input type="text" id="sermon-search-input" placeholder="<?php esc_attr_e('Search...', 'sermon-filter-plugin'); ?>">
-          <!-- <button id="sermon-search-button"><?php esc_html_e('Search', 'sermon-filter-plugin'); ?></button> -->
-          <div id="sermon-search-button" class="sermon-search-icon">
+      <div class="sfb-search-bar">
+          <input type="text" class="sfb-search-input" placeholder="<?php esc_attr_e('Search...', 'sermon-filter-plugin'); ?>">
+          <div class="sfb-search-icon">
             <svg xmlns="http://www.w3.org/2000/svg" id="icon" width="20" height="20" viewBox="0 0 32 32">
               <defs>
                 <style>
@@ -97,151 +92,44 @@ function sfb_generate_filter_buttons_shortcode($atts = []) {
           </div>
       </div>
     </div>
-    <div class="sermon-filter-results"></div>
+    <div class="sfb-results-container"></div>
     <?php
     return ob_get_clean();
 }
 add_shortcode('sermon_filter_buttons', 'sfb_generate_filter_buttons_shortcode');
 
-
-// Define a function to split blocks into two parts
-function split_content_blocks($blocks) {
-    $video_block = '';
-    // $remaining_blocks = [];
-
-    foreach ($blocks as $block) {
-        // Check if the block type is an embed
-        if ($block['blockName'] === 'core/embed' && !empty($block['attrs']['url'])) {
-            $video_block = apply_filters('the_content', render_block($block)); // Get the rendered block content
-            break; // Stop after finding the first video block
-        // } else {
-        //     $remaining_blocks[] = $block; // Collect remaining blocks
-        }
-    }
-
-    return $video_block;
-    // return [
-    //     'video' => $video_block,
-    //     'remaining' => $remaining_blocks
-    // ];
-}
-
-
 // Handle AJAX requests
 function sfb_handle_ajax_request() {
-    $filter = isset($_POST['filter']) ? sanitize_text_field($_POST['filter']) : '';
-    $paged = isset($_POST['paged']) ? intval($_POST['paged']) : 1;
-    $taxonomy = isset($_POST['taxonomy']) ? sanitize_title($_POST['taxonomy']) : '';
-    $search_query = isset($_POST['search_query']) ? sanitize_text_field($_POST['search_query']) : '';
+  $filter = isset($_POST['filter']) ? sanitize_text_field($_POST['filter']) : '';
+  $paged = isset($_POST['paged']) ? intval($_POST['paged']) : 1;
+  $taxonomy = isset($_POST['taxonomy']) ? sanitize_title($_POST['taxonomy']) : '';
+  $search_query = isset($_POST['search_query']) ? sanitize_text_field($_POST['search_query']) : '';
 
-error_log('$_POST : ' . print_r($_POST['taxonomy'], true));
-error_log('$taxonomy : ' . print_r(sanitize_title($_POST['taxonomy']), true));
-    $shortcode_atts = get_option('sfb_shortcode_atts');
-    // Use $shortcode_atts['taxonomy'] and $shortcode_atts['posts_per_page'] in your logic
-    $post_per_page = $shortcode_atts['posts_per_page'];
-    $taxonomy_terms_per_page = $shortcode_atts['taxonomy_terms_per_page'];
+  $shortcode_atts = get_option('sfb_shortcode_atts');
+  $posts_per_page = $shortcode_atts['posts_per_page'];
+  $taxonomy_terms_per_page = $shortcode_atts['taxonomy_terms_per_page'];
 
-    if ($filter == 'search' /*&& !empty($search_query)*/) {
-      $args = array(
-          'post_type' => 'sermon',
-          'posts_per_page' => $posts_per_page,
-          'paged' => $paged,
-          's' => $search_query
-      );
-    } elseif ($filter == 'recent' || $filter == '') {
-        $args = array(
-            'post_type' => 'sermon',
-            'posts_per_page' => $post_per_page,
-            'paged' => $paged,
-            'orderby' => 'date',
-            'order' => 'DESC'
-        );
-    } else {  // if ($filter == 'speaker' || $filter == 'scripture') {
-        if ($taxonomy) {
-            $args = array(
-                'post_type' => 'sermon',
-                'posts_per_page' => $post_per_page,
-                'paged' => $paged,
-                'tax_query' => array(
-                    array(
-                        'taxonomy' => $filter,
-                        'field'    => 'slug',
-                        'terms'    => $taxonomy,
-                    ),
-                ),
-            );
-        } else {
-            $args = array(
-                'taxonomy'   => $filter,
-                'hide_empty' => true,
-                'parent'     => 0,
-                'number'     => $taxonomy_terms_per_page,
-                'offset'     => ($paged - 1) * $post_per_page,
-            );
-            $terms = get_terms($args);
-            display_taxonomies($terms, $filter);
-            wp_die();
-        }
-    }
+  if ($filter == 'recent') {
+    $args = array(
+        'post_type' => 'sermon',
+        'posts_per_page' => $posts_per_page,
+        'paged' => $paged,
+        'orderby' => 'date',
+        'order' => 'DESC'
+    );
+  }
+    
+  $query = new WP_Query($args);
+  display_sermons($query, $filter, $taxonomy);
 
-    $query = new WP_Query($args);
-    display_sermons($query, $filter, $taxonomy);
 
-    wp_die();
+  wp_die();
 }
 add_action('wp_ajax_sfb_filter', 'sfb_handle_ajax_request');
 add_action('wp_ajax_nopriv_sfb_filter', 'sfb_handle_ajax_request');
 
-// function display_sermons($query, $filter, $taxonomy) {
-//   echo '<div class="sermon-results-container" data-filter="' . esc_attr($filter) . '" data-taxonomy="' . esc_attr($taxonomy) . '">';
-//   if ($query->have_posts()) {
-//       while ($query->have_posts()) {
-//           $query->the_post();
-//           include plugin_dir_path(__FILE__) . 'sermon-template.php';
-//       }
-//       display_pagination($query->max_num_pages);
-//   } else {
-//     esc_html_e('No results found.', 'sermon-filter-plugin');
-//   }
-//   wp_reset_postdata();
-// }
-function display_sermons($query, $filter, $taxonomy) {
-  echo '<div class="sermon-results-container" data-filter="' . esc_attr($filter) . '" data-taxonomy="' . esc_attr($taxonomy) . '">';
-  if ($query->have_posts()) {
-      echo '<div class="sfb-sermons-grid">'; // Add a container for the grid
-      while ($query->have_posts()) {
-          $query->the_post();
-          include plugin_dir_path(__FILE__) . 'sermon-template.php';
-      }
-      echo '</div>'; // Close the container
-      display_pagination($query->max_num_pages);
-  } else {
-      esc_html_e('No results found.', 'sermon-filter-plugin');
-  }
-  wp_reset_postdata();
-}
-
-function display_taxonomies($taxonomies, $taxonomy_name) {
-    if (!empty($taxonomies)) {
-        echo '<ul class="taxonomy-list">';
-        foreach ($taxonomies as $taxonomy) {
-            $term_count = $taxonomy->count;
-            echo '<li class="child-taxonomy-link" data-taxonomy="' . esc_attr($taxonomy->slug) . '">';
-            echo '<div class="term-name">' . $taxonomy->name . '</div>';
-            echo '<div class="term-count-arrow">';
-            echo '<div class="term-count">' . $term_count . '</div>';
-            echo '<div class="arrow">&#9654;</div>'; // Unicode for a right arrow
-            echo '</div>';
-            echo '</li>';
-        }
-        display_taxonomy_pagination($taxonomy_name);
-    } else {
-      esc_html_e('No results found.', 'sermon-filter-plugin');
-    }
-}
-
 function generatePaginationButtons($pagination, $currentPage) {
-  echo '<div class="pagination">';
+  echo '<div class="sfb-pagination">';
   foreach ($pagination as $page_link) {
     // get page number from the $page_link
     $regex = '/#page=(\d+)/';  // Regular expression to match '#page=' followed by digits
@@ -256,7 +144,7 @@ function generatePaginationButtons($pagination, $currentPage) {
     if (strpos($page_link, 'dots') !== false ) {
       echo '<span>' . $page_link . '</span>';
     } else {
-      echo '<span class="page-link" data-page="' . abs($page_num) . '">' . $page_link . '</span>';
+      echo '<span class="sfb-page-link" data-page="' . abs($page_num) . '">' . $page_link . '</span>';
     }
   }
   echo '</div>';
@@ -279,27 +167,19 @@ function display_pagination($max_num_pages) {
   }
 }
 
-function display_taxonomy_pagination($taxonomy_name) {
-  $total_taxonomies = wp_count_terms($taxonomy_name, array('parent' => 0, 'hide_empty' => true));
-  $shortcode_atts = get_option('sfb_shortcode_atts');
-  // Use $shortcode_atts['taxonomy'] and $shortcode_atts['posts_per_page'] in your logic
-  $post_per_page = $shortcode_atts['posts_per_page'];
-  $total_pages = ceil($total_taxonomies / $post_per_page);
-  $currentPage = intval($_POST['paged']);
-  if ($total_pages > 1) {
-      $pagination = paginate_links(array(
-          'base' => '%_%',
-          'format' => '#page=%#%',
-          'current' => max(1, intval($_POST['paged'])),
-          'total' => $total_pages,
-          'type' => 'array',
-          'prev_text' => '&lt;', // < symbol
-          'next_text' => '&gt;', // > symbol
-      ));
-
-      if ($pagination) {
-        generatePaginationButtons($pagination, $currentPage);
+function display_sermons($query, $filter, $taxonomy) {
+  echo '<div class="sfb-sermons-grid-container" data-filter="' . esc_attr($filter) . '" data-taxonomy="' . esc_attr($taxonomy) . '">';
+  if ($query->have_posts()) {
+      echo '<div class="sfb-sermons-grid">'; // Add a container for the grid
+      while ($query->have_posts()) {
+          $query->the_post();
+          include plugin_dir_path(__FILE__) . 'sermon-template.php';
       }
+      echo '</div>'; // Close the container
+      display_pagination($query->max_num_pages);
+  } else {
+      esc_html_e('No results found.', 'sermon-filter-plugin');
   }
+  wp_reset_postdata();
 }
 ?>
