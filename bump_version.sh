@@ -12,7 +12,7 @@ IFS='.' read -r -a VERSION_PARTS <<< "$CURRENT_VERSION"
 NEW_VERSION="${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.${VERSION_PARTS[2]}"
 
 # Update the version number in the plugin file
-sed -i '' "s/define('SFB_VERSION', '$CURRENT_VERSION')/define('SFB_VERSION', '$NEW_VERSION')/" "$PLUGIN_FILE"
+sed -i "s/define('SFB_VERSION', '$CURRENT_VERSION')/define('SFB_VERSION', '$NEW_VERSION')/" "$PLUGIN_FILE"
 
 # Output the new version number
 echo "Version bumped to $NEW_VERSION"
